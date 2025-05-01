@@ -74,37 +74,28 @@ app.post('/register', async (req, res) => {
 
 // Iniciar sesión
 app.post('/login', async (req, res) => {
-    const { userEmail, userPassword } = req.body;
-  
-    if (!userEmail || !userPassword) {
+  const { userEmail, userPassword } = req.body;
+  console.log("Datos recibidos:", req.body);  // Agrega esto para ver los datos que estás recibiendo
+
+  if (!userEmail || !userPassword) {
       return res.status(400).json({ error: 'Todos los campos son obligatorios' });
-    }
-  
-    try {
-      // Buscar al usuario por correo electrónico
+  }
+
+  try {
       const user = await User.findOne({ userEmail });
       if (!user) {
-        return res.status(400).json({ error: 'Usuario no encontrado' });
+          return res.status(400).json({ error: 'Usuario no encontrado' });
       }
-  
-      // Verificar la contraseña
+
       const isMatch = await bcrypt.compare(userPassword, user.userPassword);
       if (!isMatch) {
-        return res.status(400).json({ error: 'Contraseña incorrecta' });
+          return res.status(400).json({ error: 'Contraseña incorrecta' });
       }
-  
-      // Crear y enviar un JWT usando la clave secreta del .env
+
       const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
       res.status(200).json({ message: 'Inicio de sesión exitoso', token });
-    } catch (err) {
+  } catch (err) {
       console.error('❌ Error iniciando sesión:', err);
       res.status(500).json({ error: 'Hubo un error al iniciar sesión' });
-    }
-  });
-  
-
-// Puerto
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
+  }
 });
