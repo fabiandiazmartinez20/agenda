@@ -11,7 +11,15 @@ require('dotenv').config();
 const User = require('./models/User');
 
 const app = express();
-app.use(cors());
+
+
+const corsOptions = {
+  origin: "https://prueba-e5160.web.app/",  // Asegúrate de que esta URL sea la correcta
+  methods: ["GET", "POST"],
+  allowedHeaders: ["Content-Type"]
+};
+app.use(cors(corsOptions));  // Agregar este middleware antes de las rutas
+
 app.use(express.json());
 
 // Ruta de prueba
