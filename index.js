@@ -10,7 +10,11 @@ require('dotenv').config();
 // Importar el modelo de Usuario
 const User = require('./models/User');
 
+
+
+
 const app = express();
+app.use(express.static('public'));
 
 
 const corsOptions = {
