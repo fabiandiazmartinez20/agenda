@@ -14,7 +14,7 @@ const app = express();
 
 
 const corsOptions = {
-  origin: "https://prueba-e5160.web.app/",  // Asegúrate de que esta URL sea la correcta
+  origin: "https://prueba-e5160.web.app",  // Asegúrate de que esta URL sea la correcta
   methods: ["GET", "POST"],
   allowedHeaders: ["Content-Type"]
 };
