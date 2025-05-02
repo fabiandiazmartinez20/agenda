@@ -20,7 +20,7 @@ app.use(express.static('public'));
 const corsOptions = {
   origin: "https://prueba-e5160.web.app",  // Asegúrate de que esta URL sea la correcta
   methods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type"]
+  allowedHeaders: ["Content-Type", "Authorization"]
 };
 app.use(cors(corsOptions));  // Agregar este middleware antes de las rutas
 
