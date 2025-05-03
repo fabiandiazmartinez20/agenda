@@ -5,20 +5,19 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-// Importar el modelo de Usuario
 const User = require('./models/User');
 const Tarea = require('./models/Tarea');
 
 const app = express();
 app.use(express.static('public'));
 
-// Configuración de CORS
+// CORS
 const corsOptions = {
-  origin: "https://prueba-e5160.web.app", // Asegúrate de que esta URL sea la correcta
+  origin: "https://prueba-e5160.web.app",
   methods: ["GET", "POST"],
   allowedHeaders: ["Content-Type", "Authorization"]
 };
-app.use(cors(corsOptions));  // Agregar este middleware antes de las rutas
+app.use(cors(corsOptions));
 
 app.use(express.json());
 
@@ -32,7 +31,7 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('✅ Conexión a MongoDB exitosa'))
   .catch(err => console.error('❌ Error conectando a MongoDB:', err));
 
-// ** Registrar nuevo usuario **
+// Registrar nuevo usuario
 app.post('/register', async (req, res) => {
   const { userName, userEmail, userPassword } = req.body;
 
@@ -40,24 +39,20 @@ app.post('/register', async (req, res) => {
     return res.status(400).json({ error: 'Todos los campos son obligatorios' });
   }
 
-  // Validación de formato de correo electrónico
   const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
   if (!emailRegex.test(userEmail)) {
     return res.status(400).json({ error: 'Formato de correo electrónico no válido' });
   }
 
   try {
-    // Verificar si el usuario ya existe
     const existingUser = await User.findOne({ userEmail });
     if (existingUser) {
       return res.status(400).json({ error: 'El correo ya está registrado' });
     }
 
-    // Encriptar la contraseña
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(userPassword, salt);
 
-    // Crear un nuevo usuario
     const newUser = new User({
       userName,
       userEmail,
@@ -72,43 +67,41 @@ app.post('/register', async (req, res) => {
   }
 });
 
-// ** Iniciar sesión **
+// Iniciar sesión
 app.post('/login', async (req, res) => {
   const { userEmail, userPassword } = req.body;
-  console.log("Datos recibidos:", req.body);  // Agrega esto para ver los datos que estás recibiendo
 
   if (!userEmail || !userPassword) {
-      return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+    return res.status(400).json({ error: 'Todos los campos son obligatorios' });
   }
 
   try {
-      const user = await User.findOne({ userEmail });
-      if (!user) {
-          return res.status(400).json({ error: 'Usuario no encontrado' });
-      }
+    const user = await User.findOne({ userEmail });
+    if (!user) {
+      return res.status(400).json({ error: 'Usuario no encontrado' });
+    }
 
-      const isMatch = await bcrypt.compare(userPassword, user.userPassword);
-      if (!isMatch) {
-          return res.status(400).json({ error: 'Contraseña incorrecta' });
-      }
+    const isMatch = await bcrypt.compare(userPassword, user.userPassword);
+    if (!isMatch) {
+      return res.status(400).json({ error: 'Contraseña incorrecta' });
+    }
 
-      const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-      res.status(200).json({ message: 'Inicio de sesión exitoso', token });
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    res.status(200).json({ message: 'Inicio de sesión exitoso', token });
   } catch (err) {
-      console.error('❌ Error iniciando sesión:', err);
-      res.status(500).json({ error: 'Hubo un error al iniciar sesión' });
+    console.error('❌ Error iniciando sesión:', err);
+    res.status(500).json({ error: 'Hubo un error al iniciar sesión' });
   }
 });
 
-// ** Middleware para verificar el token JWT **
+// Middleware JWT
 const verifyToken = require('./authMiddleware');
 
-// ** Ruta protegida para validar el token **
 app.get('/validar-token', verifyToken, (req, res) => {
   res.json({ message: 'Token válido', user: req.user });
 });
 
-// ** Guardar una tarea **
+// Guardar tarea
 app.post('/tareas', async (req, res) => {
   const { taskName, taskSubject, taskTime, usuario } = req.body;
 
@@ -117,7 +110,6 @@ app.post('/tareas', async (req, res) => {
   }
 
   try {
-    // Verificar si el usuario existe antes de guardar la tarea
     const usuarioExistente = await User.findById(usuario);
     if (!usuarioExistente) {
       return res.status(400).json({ error: 'Usuario no válido' });
@@ -127,7 +119,7 @@ app.post('/tareas', async (req, res) => {
       taskName,
       taskSubject,
       taskTime,
-      usuario,  // Guardamos el usuario que corresponde
+      usuario,
     });
     await nuevaTarea.save();
     res.status(201).json({ message: 'Tarea guardada correctamente' });
@@ -137,7 +129,7 @@ app.post('/tareas', async (req, res) => {
   }
 });
 
-// ** Obtener tareas por usuario **
+// Obtener tareas por usuario (original)
 app.get('/tareas/:usuarioId', async (req, res) => {
   try {
     const tareas = await Tarea.find({ usuario: req.params.usuarioId });
@@ -145,6 +137,27 @@ app.get('/tareas/:usuarioId', async (req, res) => {
   } catch (err) {
     console.error('❌ Error obteniendo tareas:', err);
     res.status(500).json({ error: 'Error al obtener las tareas' });
+  }
+});
+
+// ✅ NUEVA RUTA: Obtener tareas por fecha y usuario
+app.get('/tareas', async (req, res) => {
+  const { fecha, usuario } = req.query;
+
+  if (!fecha || !usuario) {
+    return res.status(400).json({ error: 'Faltan parámetros fecha o usuario' });
+  }
+
+  try {
+    const tareas = await Tarea.find({
+      usuario: usuario,
+      taskTime: fecha
+    });
+
+    res.status(200).json(tareas);
+  } catch (err) {
+    console.error('❌ Error obteniendo tareas por fecha y usuario:', err);
+    res.status(500).json({ error: 'Error al obtener tareas' });
   }
 });
 
