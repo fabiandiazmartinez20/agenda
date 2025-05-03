@@ -5,23 +5,16 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-//este es index.js
-
 // Importar el modelo de Usuario
 const User = require('./models/User');
-// Al inicio del archivo
 const Tarea = require('./models/Tarea');
-
-
-
-
 
 const app = express();
 app.use(express.static('public'));
 
-
+// Configuración de CORS
 const corsOptions = {
-  origin: "https://prueba-e5160.web.app",  // Asegúrate de que esta URL sea la correcta
+  origin: "https://prueba-e5160.web.app", // Asegúrate de que esta URL sea la correcta
   methods: ["GET", "POST"],
   allowedHeaders: ["Content-Type", "Authorization"]
 };
@@ -39,7 +32,7 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('✅ Conexión a MongoDB exitosa'))
   .catch(err => console.error('❌ Error conectando a MongoDB:', err));
 
-// **Registrar nuevo usuario**
+// ** Registrar nuevo usuario **
 app.post('/register', async (req, res) => {
   const { userName, userEmail, userPassword } = req.body;
 
@@ -79,7 +72,7 @@ app.post('/register', async (req, res) => {
   }
 });
 
-// Iniciar sesión
+// ** Iniciar sesión **
 app.post('/login', async (req, res) => {
   const { userEmail, userPassword } = req.body;
   console.log("Datos recibidos:", req.body);  // Agrega esto para ver los datos que estás recibiendo
@@ -107,14 +100,15 @@ app.post('/login', async (req, res) => {
   }
 });
 
-
+// ** Middleware para verificar el token JWT **
 const verifyToken = require('./authMiddleware');
 
+// ** Ruta protegida para validar el token **
 app.get('/validar-token', verifyToken, (req, res) => {
   res.json({ message: 'Token válido', user: req.user });
 });
 
-// Guardar una tarea
+// ** Guardar una tarea **
 app.post('/tareas', async (req, res) => {
   const { taskName, taskSubject, taskTime, usuario } = req.body;
 
@@ -123,6 +117,12 @@ app.post('/tareas', async (req, res) => {
   }
 
   try {
+    // Verificar si el usuario existe antes de guardar la tarea
+    const usuarioExistente = await User.findById(usuario);
+    if (!usuarioExistente) {
+      return res.status(400).json({ error: 'Usuario no válido' });
+    }
+
     const nuevaTarea = new Tarea({
       taskName,
       taskSubject,
@@ -137,10 +137,16 @@ app.post('/tareas', async (req, res) => {
   }
 });
 
-
-
-
-
+// ** Obtener tareas por usuario **
+app.get('/tareas/:usuarioId', async (req, res) => {
+  try {
+    const tareas = await Tarea.find({ usuario: req.params.usuarioId });
+    res.status(200).json(tareas);
+  } catch (err) {
+    console.error('❌ Error obteniendo tareas:', err);
+    res.status(500).json({ error: 'Error al obtener las tareas' });
+  }
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
