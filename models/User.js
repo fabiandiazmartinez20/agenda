@@ -10,3 +10,4 @@ const userSchema = new mongoose.Schema({
 const User = mongoose.model('User', userSchema, 'usuarios'); 
 
 module.exports = User;
+///aqui creare una coleccion que se llame tareas para la coleccion 

@@ -9,6 +9,9 @@ require('dotenv').config();
 
 // Importar el modelo de Usuario
 const User = require('./models/User');
+// Al inicio del archivo
+const Tarea = require('./models/Tarea');
+
 
 
 
@@ -110,6 +113,41 @@ const verifyToken = require('./authMiddleware');
 app.get('/validar-token', verifyToken, (req, res) => {
   res.json({ message: 'Token válido', user: req.user });
 });
+
+
+// Guardar una tarea
+app.post('/tareas', async (req, res) => {
+  const { usuario, nombre, asunto, hora, fecha } = req.body;
+
+  if (!usuario || !nombre || !asunto || !hora || !fecha) {
+    return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+  }
+
+  try {
+    const nuevaTarea = new Tarea({ usuario, nombre, asunto, hora, fecha });
+    await nuevaTarea.save();
+    res.status(201).json({ message: 'Tarea guardada correctamente' });
+  } catch (err) {
+    console.error('❌ Error al guardar tarea:', err);
+    res.status(500).json({ error: 'Error interno al guardar tarea' });
+  }
+});
+
+
+
+// Obtener tareas por usuario y fecha
+app.get('/tareas/:usuario/:fecha', async (req, res) => {
+  const { usuario, fecha } = req.params;
+
+  try {
+    const tareas = await Tarea.find({ usuario, fecha });
+    res.status(200).json(tareas);
+  } catch (err) {
+    console.error('❌ Error al obtener tareas:', err);
+    res.status(500).json({ error: 'Error interno al obtener tareas' });
+  }
+});
+
 
 
 const PORT = process.env.PORT || 3000;

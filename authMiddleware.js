@@ -1,20 +1,16 @@
 const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
 function verifyToken(req, res, next) {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Token no proporcionado' });
-  }
-
-  const token = authHeader.split(' ')[1];
+  const token = req.headers['authorization'];
+  if (!token) return res.status(403).json({ error: 'Token no proporcionado' });
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // Puedes usarlo luego para saber el usuario
+    const decoded = jwt.verify(token.replace('Bearer ', ''), process.env.JWT_SECRET);
+    req.user = decoded;
     next();
   } catch (err) {
-    return res.status(403).json({ error: 'Token inválido o expirado' });
+    res.status(401).json({ error: 'Token inválido' });
   }
 }
 
