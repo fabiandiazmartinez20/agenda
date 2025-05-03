@@ -138,24 +138,6 @@ app.post('/tareas', async (req, res) => {
 });
 
 
-// Obtener tareas de un usuario para una fecha específica
-app.get('/tareas/:usuario/:fecha', async (req, res) => {
-  const { usuario, fecha } = req.params;
-  const fechaParseada = new Date(fecha);
-
-  try {
-    const tareas = await Tarea.find({ 
-      usuario: mongoose.Types.ObjectId(usuario), 
-      taskTime: { $gte: fechaParseada, $lt: new Date(fechaParseada.getTime() + 24 * 60 * 60 * 1000) }
-    });
-
-    res.json(tareas);
-  } catch (err) {
-    console.error('❌ Error al obtener tareas:', err);
-    res.status(500).json({ error: 'Error interno al obtener tareas' });
-  }
-});
-
 
 
 
