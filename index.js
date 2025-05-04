@@ -152,7 +152,7 @@ app.get('/tareas', async (req, res) => {
   try {
     const tareas = await Tarea.find({
       usuario: usuario,
-      taskTime: fecha
+      fecha: fecha
     });
 
     res.status(200).json(tareas);
