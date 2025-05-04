@@ -103,7 +103,7 @@ app.get('/validar-token', verifyToken, (req, res) => {
 
 // Guardar tarea
 app.post('/tareas', async (req, res) => {
-  const { taskName, taskSubject, taskTime, usuario } = req.body;
+  const { taskName, taskSubject, taskTime, usuario, fecha } = req.body;
 
   if (!taskName || !taskSubject || !taskTime || !usuario) {
     return res.status(400).json({ error: 'Todos los campos son obligatorios' });
@@ -120,6 +120,7 @@ app.post('/tareas', async (req, res) => {
       taskSubject,
       taskTime,
       usuario,
+      fecha,
     });
     await nuevaTarea.save();
     res.status(201).json({ message: 'Tarea guardada correctamente' });
