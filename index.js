@@ -162,6 +162,26 @@ app.get('/tareas', async (req, res) => {
   }
 });
 
+
+
+// Eliminar tarea por ID
+app.delete('/tareas/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const tareaEliminada = await Tarea.findByIdAndDelete(id);
+    if (!tareaEliminada) {
+      return res.status(404).json({ error: 'Tarea no encontrada' });
+    }
+
+    res.status(200).json({ message: 'Tarea eliminada correctamente' });
+  } catch (error) {
+    console.error('❌ Error al eliminar tarea:', error);
+    res.status(500).json({ error: 'Error al eliminar tarea' });
+  }
+});
+
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
