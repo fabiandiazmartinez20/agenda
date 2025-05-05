@@ -14,7 +14,7 @@ app.use(express.static('public'));
 // CORS
 const corsOptions = {
   origin: "https://prueba-e5160.web.app",
-  methods: ["GET", "POST"],
+  methods: ["GET", "POST", "DELETE", "PUT", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 };
 app.use(cors(corsOptions));
