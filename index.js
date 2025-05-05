@@ -14,7 +14,7 @@ app.use(express.static('public'));
 // CORS
 const corsOptions = {
   origin: "https://prueba-e5160.web.app",
-  methods: ["GET", "POST", "DELETE", "PUT", "OPTIONS"],
+  methods: ["GET", "POST", "DELETE", "PUT", "OPTIONS", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization"]
 };
 app.use(cors(corsOptions));
@@ -162,8 +162,6 @@ app.get('/tareas', async (req, res) => {
   }
 });
 
-
-
 // Eliminar tarea por ID
 app.delete('/tareas/:id', async (req, res) => {
   try {
@@ -178,6 +176,29 @@ app.delete('/tareas/:id', async (req, res) => {
   } catch (error) {
     console.error('❌ Error al eliminar tarea:', error);
     res.status(500).json({ error: 'Error al eliminar tarea' });
+  }
+});
+
+
+app.patch('/tareas/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { taskName, taskSubject, taskTime } = req.body;
+
+    const tareaActualizada = await Tarea.findByIdAndUpdate(
+      id,
+      { taskName, taskSubject, taskTime },
+      { new: true }
+    );
+
+    if (!tareaActualizada) {
+      return res.status(404).json({ error: 'Tarea no encontrada' });
+    }
+
+    res.status(200).json(tareaActualizada);
+  } catch (error) {
+    console.error('❌ Error al actualizar tarea:', error);
+    res.status(500).json({ error: 'Error al actualizar tarea' });
   }
 });
 
